@@ -1,5 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import {
+  NewNotification,
   NewUserPreferencesDTO,
   NotificationChannel,
   NotificationChannelToggle,
@@ -51,14 +52,9 @@ export class AppService implements IAppService {
 
   private async sendNotification(
     channel: NotificationChannel,
-    to: string,
-    message: string,
+    payload: NewNotification,
   ) {
     const url = `${this.notificationServiceURI}/send-${channel}`;
-    const payload = {
-      [channel]: to,
-      message,
-    };
 
     await firstValueFrom(
       this.httpService
@@ -82,31 +78,35 @@ export class AppService implements IAppService {
 
   async sendEmail(userId: number, message: string): Promise<boolean> {
     const email = this.storage.getUserEmail(userId);
-    await this.sendNotification('email', email, message);
+    await this.sendNotification('email', { email, message });
+    this.logger.log(`Sent notification by email to user ${userId}`);
     return true;
   }
 
   async sendSms(userId: number, message: string): Promise<boolean> {
     const telephone = this.storage.getUserPhone(userId);
-    await this.sendNotification('sms', telephone, message);
-    this.logger.log(`Sent notification by sms to ${userId}`);
+    await this.sendNotification('sms', { telephone, message });
+    this.logger.log(`Sent notification by sms to user ${userId}`);
     return true;
   }
 
   async dispatchForUserChannel(userId: number, message: string) {
     const { preferences } = this.storage.getUserPreferences(userId);
 
+    const pending = [];
     for (const [channel, enabled] of Object.entries(preferences)) {
       if (enabled) {
         switch (channel) {
           case 'email':
-            await this.sendEmail(userId, message);
+            pending.push(this.sendEmail(userId, message));
             break;
           case 'sms':
-            await this.sendSms(userId, message);
+            pending.push(this.sendSms(userId, message));
             break;
         }
       }
     }
+    //Send all at once, ignore failues
+    console.log(await Promise.allSettled(pending));
   }
 }

@@ -14,6 +14,12 @@ export interface UserNotificationPreferences {
   preferences: NotificationChannelToggle;
 }
 
+export interface NewNotification {
+  email?: string;
+  telephone?: string;
+  message: string;
+}
+
 export interface NewNotificationDTO {
   userId: number;
   message: string;

@@ -72,7 +72,7 @@ export class UserStorage implements IUserStorage {
 
   getUserPhone(id: number): string | undefined {
     const user = this.users.get(id);
-    return user?.email;
+    return user?.telephone;
   }
 
   getIdByEmail(email: string): number {
