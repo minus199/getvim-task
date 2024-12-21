@@ -11,14 +11,14 @@ import {
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @Post('/')
+  @Post('/preferences')
   async newUserNotificationsPreferences(
     @Body() body: NewUserPreferencesDTO,
   ): Promise<UserNotificationPreferences> {
     return this.appService.newUserNotificationsPreferences(body);
   }
 
-  @Put('/')
+  @Put('/preferences')
   async editUserNotificationsPreferences(
     @Body() { email, preferences }: EditUserPreferencesDTO,
   ): Promise<boolean> {
