@@ -3,6 +3,7 @@ import {
   NotificationChannelToggle,
   UserNotificationPreferences,
 } from './contracts';
+import { BaseError } from './exceptions';
 
 @Injectable()
 export class UserStorage {
@@ -21,6 +22,13 @@ export class UserStorage {
   addUserPreferences(
     preferences: Omit<UserNotificationPreferences, 'userId'>,
   ): UserNotificationPreferences {
+    try {
+      return this.getUserPreferences(preferences.email);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (_: any) {
+      // user does not exists yet
+    }
+
     const userId = this.nextId;
     const userPrefs = { userId, ...preferences };
 
@@ -35,6 +43,10 @@ export class UserStorage {
     preferences: NotificationChannelToggle,
   ): void {
     const currentPrefs = this.getUserPreferences(email);
+    if (!currentPrefs) {
+      throw new BaseError(`user ${email} does not exists`);
+    }
+
     currentPrefs.preferences = Object.assign(
       currentPrefs.preferences,
       preferences,
@@ -42,9 +54,14 @@ export class UserStorage {
   }
 
   getUserPreferences(id: number | string) {
-    return typeof id === 'string'
-      ? this.idsByEmail.get(id)
-      : this.users.get(id);
+    const prefs =
+      typeof id === 'string' ? this.idsByEmail.get(id) : this.users.get(id);
+
+    if (!prefs) {
+      throw new BaseError(`user ${id} does not exists`);
+    }
+
+    return prefs;
   }
 
   getUserEmail(id: number): string | undefined {
