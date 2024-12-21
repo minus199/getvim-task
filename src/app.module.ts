@@ -14,6 +14,9 @@ import { ConfigModule } from '@nestjs/config';
     }),
   ],
   controllers: [AppController],
-  providers: [AppService, UserStorage],
+  providers: [
+    { provide: 'IAppService', useClass: AppService },
+    { provide: 'IUserStorage', useClass: UserStorage },
+  ],
 })
 export class AppModule {}

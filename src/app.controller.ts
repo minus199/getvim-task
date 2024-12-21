@@ -1,15 +1,17 @@
-import { Body, Controller, Post, Put } from '@nestjs/common';
-import { AppService } from './app.service';
+import { Body, Controller, Inject, Post, Put } from '@nestjs/common';
 import {
   EditUserPreferencesDTO,
   NewNotificationDTO,
   NewUserPreferencesDTO,
   UserNotificationPreferences,
 } from './contracts';
+import { IAppService } from './services.contracts';
 
 @Controller('/notifications')
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(
+    @Inject('IAppService') private readonly appService: IAppService,
+  ) {}
 
   @Post('/preferences')
   async newUserNotificationsPreferences(

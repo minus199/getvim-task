@@ -4,9 +4,10 @@ import {
   UserNotificationPreferences,
 } from './contracts';
 import { BaseError } from './exceptions';
+import { IUserStorage } from './services.contracts';
 
 @Injectable()
-export class UserStorage {
+export class UserStorage implements IUserStorage {
   /**
    * provides O(1) average time complexity for lookups and insertions
    * @private
@@ -78,7 +79,7 @@ export class UserStorage {
     return this.idsByEmail.get(email).userId;
   }
 
-  get nextId(): number {
+  private get nextId(): number {
     return this.users.size;
   }
 }
