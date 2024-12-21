@@ -10,7 +10,10 @@ import { HttpService } from '@nestjs/axios';
 import { AxiosError } from 'axios';
 import { catchError, firstValueFrom } from 'rxjs';
 import { ConfigService } from '@nestjs/config';
-import { BaseError } from './exceptions';
+import {
+  ExternalServerException,
+  TooManyRequestsException,
+} from './exceptions';
 import { IAppService, IUserStorage } from './services.contracts';
 
 @Injectable()
@@ -68,10 +71,10 @@ export class AppService implements IAppService {
             const message = error.response.data.error;
 
             if (message.startsWith('Too many requests for ')) {
-              throw new BaseError('Too many requests - try again later');
+              throw new TooManyRequestsException();
             }
 
-            throw new BaseError('Sorry, service has issues - try again later'); // or backoff retry
+            throw new ExternalServerException(); // or backoff retry
           }),
         ),
     );

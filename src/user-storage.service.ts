@@ -3,7 +3,7 @@ import {
   NotificationChannelToggle,
   UserNotificationPreferences,
 } from './contracts';
-import { BaseError } from './exceptions';
+import { UserNotFound } from './exceptions';
 import { IUserStorage } from './services.contracts';
 
 @Injectable()
@@ -45,7 +45,7 @@ export class UserStorage implements IUserStorage {
   ): void {
     const currentPrefs = this.getUserPreferences(email);
     if (!currentPrefs) {
-      throw new BaseError(`user ${email} does not exists`);
+      throw new UserNotFound(email);
     }
 
     currentPrefs.preferences = Object.assign(
@@ -59,7 +59,7 @@ export class UserStorage implements IUserStorage {
       typeof id === 'string' ? this.idsByEmail.get(id) : this.users.get(id);
 
     if (!prefs) {
-      throw new BaseError(`user ${id} does not exists`);
+      throw new UserNotFound(id);
     }
 
     return prefs;
