@@ -107,6 +107,6 @@ export class AppService implements IAppService {
       }
     }
     //Send all at once, ignore failues
-    console.log(await Promise.allSettled(pending));
+    await Promise.allSettled(pending);
   }
 }
