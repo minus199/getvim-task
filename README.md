@@ -18,13 +18,13 @@
 
 ---
 
-### .env file content:
-NOTIFICATION_SERVICE_URI=http://localhost:5001
-* already set in docker compose
+### .env file content(already set in docker compose):
+- NOTIFICATION_SERVICE_URI=http://localhost:5001
+- PORT=3000
 
 
 ### endpoints
-the service exposes 3 endpoints(see ./contracts.ts for definitions):
+the service by default runs on port 3000 and exposes 3 endpoints(see ./contracts.ts for definitions):
 - POST /notifications/preferences 
   - Body:     
     ```json
