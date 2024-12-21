@@ -10,40 +10,49 @@ import { HttpService } from '@nestjs/axios';
 import { AxiosError } from 'axios';
 import { catchError, firstValueFrom } from 'rxjs';
 import { UserStorage } from './user-storage.service';
+import { ConfigService } from '@nestjs/config';
+import { BaseError } from './exceptions';
 
 @Injectable()
 export class AppService {
   private readonly logger = new Logger(AppService.name);
+  private notificationServiceURI: string;
 
   constructor(
     private readonly httpService: HttpService,
+    private readonly config: ConfigService,
     private readonly storage: UserStorage,
-  ) {}
+  ) {
+    this.notificationServiceURI = config.getOrThrow<string>(
+      'NOTIFICATION_SERVICE_URI',
+    );
+  }
 
   protected async sendNotification(
     channel: NotificationChannel,
     to: string,
     message: string,
   ) {
+    const url = `${this.notificationServiceURI}/send-${channel}`;
+    const payload = {
+      [channel]: to,
+      message,
+    };
+
     return await firstValueFrom(
       this.httpService
-        .post<SendNotificationResponse>(`/send-${channel}`, {
-          [channel]: to,
-          message,
+        .post<SendNotificationResponse>(url, payload, {
+          headers: { 'Content-Type': 'application/json' },
         })
         .pipe(
           catchError((error: AxiosError) => {
             this.logger.error(error.response.data);
 
             if (error.message.startsWith('Too many requests for ')) {
-              // backoff retry
+              throw new BaseError('Too many requests - try again later');
             }
 
-            if (error.message.startsWith('Random server error ')) {
-              // tell user to try again later
-            }
-
-            throw 'An error happened!';
+            throw new BaseError('Sorry, service has issues - try again later'); // or backoff retry
           }),
         ),
     );
@@ -69,8 +78,10 @@ export class AppService {
         switch (channel) {
           case 'email':
             await this.sendEmail(userId, message);
+            break;
           case 'sms':
             await this.sendSms(userId, message);
+            break;
         }
       }
     }
@@ -89,6 +100,4 @@ export class AppService {
     this.storage.editUserPreferences(email, preferences);
     return true;
   }
-
-  async publishNotification() {}
 }
