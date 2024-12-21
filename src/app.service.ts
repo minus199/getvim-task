@@ -16,7 +16,7 @@ import { BaseError } from './exceptions';
 @Injectable()
 export class AppService {
   private readonly logger = new Logger(AppService.name);
-  private notificationServiceURI: string;
+  private readonly notificationServiceURI: string;
 
   constructor(
     private readonly httpService: HttpService,
@@ -26,6 +26,7 @@ export class AppService {
     this.notificationServiceURI = config.getOrThrow<string>(
       'NOTIFICATION_SERVICE_URI',
     );
+    this.logger.log(`using ${this.notificationServiceURI}`);
   }
 
   protected async sendNotification(
@@ -46,9 +47,10 @@ export class AppService {
         })
         .pipe(
           catchError((error: AxiosError) => {
-            this.logger.error(error.response.data);
+            // @ts-expect-error since there is no mapping for the actual error
+            const message = error.response.data.error;
 
-            if (error.message.startsWith('Too many requests for ')) {
+            if (message.startsWith('Too many requests for ')) {
               throw new BaseError('Too many requests - try again later');
             }
 
